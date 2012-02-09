@@ -1,0 +1,257 @@
+<html>
+<body>
+<link rel='stylesheet' href='style.css' type='text/css'>
+
+<h1>Operators</h1>
+
+<p><a name="operators">  </p>
+
+<p>Some people call Perl an "operator-oriented language". To understand a Perl program, you must understand how its operators interact with their operands.</p>
+
+<p>A Perl <em>operator</em> is a series of one or more symbols used as part of the syntax of a language. Each operator operates on zero or more <em>operands</em>. Think of an operator as a special sort of function the parser understands and its operands as arguments.</p>
+
+<h2>Operator Characteristics</h2>
+
+<p><a name="operator_characteristics"> </p>
+
+<p>Every operator possesses several important characteristics which govern its behavior: the number of operands on which it operates, its relationship to other operators, and its syntactic possibilities.</p>
+
+<p><code>perldoc perlop</code> and <code>perldoc perlsyn</code> provide voluminous information about Perl's operators, but the documentation assumes you're already familiar with some details of how they work. The essential computer science concepts may sound imposing at first, but once you get past their names, they're straightforward. You already understand them implicitly.</p>
+
+<h3>Precedence</h3>
+
+<p><a name="precedence"> </p>
+
+<p>The <em>precedence</em> of an operator governs when Perl should evaluate it in an expression. Evaluation order proceeds from highest to lowest precedence. Because the precedence of multiplication is higher than the precedence of addition, <code>7 + 7 * 10</code> evaluates to <code>77</code>, not <code>140</code>.</p>
+
+<p>To force the evaluation of some operators before others, group their subexpressions in parentheses. In <code>(7 + 7) * 10</code>, grouping the addition into a single unit forces its evaluation before the multiplication. The result is <code>140</code>.</p>
+
+<p><code>perldoc perlop</code> contains a table of precedence. Read it, understand it, but don't bother memorizing it (almost no one does). Spend your time keeping your expressions simple, and then add parentheses to clarify your intent.</p>
+
+<p>In cases where two operators have the same precedence, other factors such as associativity (<a href="chapter_04.html#associativity">Associativity</a>) and fixity (<a href="chapter_04.html#fixity">Fixity</a>) break the tie.</p>
+
+<h3>Associativity</h3>
+
+<p><a name="associativity">     </p>
+
+<p>The <em>associativity</em> of an operator governs whether it evaluates from left to right or right to left. Addition is left associative, such that <code>2 + 3 + 4</code> evaluates <code>2 + 3</code> first, then adds <code>4</code> to the result. Exponentiation is right associative, such that <code>2 ** 3 ** 4</code> evaluates <code>3 ** 4</code> first, then raises <code>2</code> to the 81st power.</p>
+
+<p>It's worth your time to memorize the precedence and associativity of the common mathematical operators, but again simplicity rules the day. Use parentheses to make your intentions clear.</p>
+
+<div class="sidebar">
+
+<p>  </p>
+
+<p>The core <code>B::Deparse</code> module is an invaluable debugging tool. Run <code>perl -MO=Deparse,-p</code> on a snippet of code to see exactly how Perl handles operator precedence and associativity. The <code>-p</code> flag adds extra grouping parentheses which often clarify evaluation order.</p>
+
+<p>Beware that Perl's optimizer will simplify mathematical operations as given as examples earlier in this section; use variables instead, as in <code>$x ** $y ** $z</code>.</p>
+
+</div>
+
+<h3>Arity</h3>
+
+<p><a name="arity"></p>
+
+<p>      </p>
+
+<p>The <em>arity</em> of an operator is the number of operands on which it operates. A <em>nullary</em> operator operates on zero operands. A <em>unary</em> operator operates on one operand. A <em>binary</em> operator operates on two operands. A <em>trinary</em> operator operates on three operands. A <em>listary</em> operator operates on a list of operands. An operator's documentation and examples should make its arity clear.</p>
+
+<p>For example, the arithmetic operators are binary operators, and are usually left associative. <code>2 + 3 - 4</code> evaluates <code>2 + 3</code> first; addition and subtraction have the same precedence, but they're left associative and binary, so the proper evaluation order applies the leftmost operator (<code>+</code>) to the leftmost two operands (<code>2</code> and <code>3</code>) with the leftmost operator (<code>+</code>), then applies the rightmost operator (<code>-</code>) to the result of the first operation and the rightmost operand (<code>4</code>).</p>
+
+<p>Perl novices often find confusion between the interaction of listary operators--especially function calls--and nested expressions. Where parentheses usually help, beware of the parsing complexity of:</p>
+
+<div class="programlisting">
+
+<pre><code>    # probably buggy code
+    say ( 1 + 2 + 3 ) * 4;</code></pre>
+
+</div>
+
+<p>... which prints the value <code>6</code> and (probably) evaluates as a whole to <code>4</code> (the return value of <code>say</code> multiplied by <code>4</code>). Perl's parser happily interprets the parentheses as postcircumfix (<a href="chapter_04.html#fixity">Fixity</a>) operators denoting the arguments to <code>say</code>, not circumfix parentheses grouping an expression to change precedence.</p>
+
+<h3>Fixity</h3>
+
+<p><a name="fixity">            </p>
+
+<p>An operator's <em>fixity</em> is its position relative to its operands:</p>
+
+<p>           </p>
+
+<ul>
+
+<li><em>Infix</em> operators appear between their operands. Most mathematical operators are infix operators, such as the multiplication operator in <code>$length * $width</code>.</li>
+
+<p>       </p>
+
+<li><em>Prefix</em> operators precede their operators. <em>Postfix</em> operators follow. These operators tend to be unary, such as mathematic negation (<code>-$x</code>), boolean negation (<code>!$y</code>), and postfix increment (<code>$z++</code>).</li>
+
+<p>      </p>
+
+<li><em>Circumfix</em> operators surround their operands, as with the anonymous hash constructor (<code>{ ... }</code>) and quoting operators (<code>qq[ ... ]</code>).</li>
+
+<p>  </p>
+
+<li><em>Postcircumfix</em> operators follow certain operands and surround others, as seen in hash and array element access (<code>$hash{$x}</code> and <code>$array[$y]</code>).</li>
+
+</ul>
+
+<h2>Operator Types</h2>
+
+<p><a name="operator_types"></p>
+
+<p>Perl operators provide value contexts (<a href="chapter_01.html#value_contexts">Numeric, String, and Boolean Context</a>) to their operands. To choose the appropriate operator, understand the values of the operands you provide as well as the value you expect to receive.</p>
+
+<h3>Numeric Operators</h3>
+
+<p><a name="numeric_operators"></p>
+
+<p>                           </p>
+
+<p>Numeric operators impose numeric contexts on their operands. These operators are the standard arithmetic operators such as addition (<code>+</code>), subtraction (<code>-</code>), multiplication (<code>*</code>), division (<code>/</code>), exponentiation (<code>**</code>), modulo (<code>%</code>), their in-place variants (<code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>**=</code>, and <code>%=</code>), and both postfix and prefix auto-decrement (<code>--</code>).</p>
+
+<p>The auto-increment operator has special string behavior (<a href="chapter_04.html#auto_increment_operator">Special Operators</a>).</p>
+
+<p>      </p>
+
+<p>      </p>
+
+<p>Several comparison operators impose numeric contexts upon their operands. These are numeric equality (<code>==</code>), numeric inequality (<code>!=</code>), greater than (<code>&gt;</code>), less than (<code>&lt;</code>), greater than or equal to (<code>&gt;=</code>), less than or equal to (<code>&lt;=</code>), and the sort comparison operator (<code>&lt;=&gt;</code>).</p>
+
+<h3>String Operators</h3>
+
+<p>       </p>
+
+<p>String operators impose string contexts on their operands. These operators are positive and negative regular expression binding (<code>=~</code> and <code>!~</code>, respectively), and concatenation (<code>.</code>).</p>
+
+<p>             </p>
+
+<p>Several comparison operators impose string contexts upon their operands. These are string equality (<code>eq</code>), string inequality (<code>ne</code>), greater than (<code>gt</code>), less than (<code>lt</code>), greater than or equal to (<code>ge</code>), less than or equal to (<code>le</code>), and the string sort comparison operator (<code>cmp</code>).</p>
+
+<h3>Logical Operators</h3>
+
+<p>                     </p>
+
+<p>Logical operators impose a boolean context on their operands. These operators are <code>&&</code>, <code>and</code>, <code>||</code>, and <code>or</code>. All are infix and all exhibit <em>short-circuiting</em> behavior (<a href="chapter_03.html#short_circuiting">Short Circuiting</a>). The word variants have lower precedence than their punctuation forms.</p>
+
+<p>The defined-or operator, <code>//</code>, tests the <em>definedness</em> of its operand. Unlike <code>||</code> which tests the <em>truth</em> of its operand, <code>//</code> evaluates to a true value even if its operand evaluates to a numeric zero or the empty string. This is especially useful for setting default parameter values:</p>
+
+<div class="programlisting">
+
+<pre><code>    sub name_pet
+    {
+        my $name = shift // &#39;Fluffy&#39;;
+        ...
+    }</code></pre>
+
+</div>
+
+<p></p>
+
+<p>The ternary conditional operator (<code>?:</code>) takes three operands. It evaluates the first in boolean context and evaluates to the second if the first is true and the third otherwise:</p>
+
+<div class="programlisting">
+
+<pre><code>    my $truthiness = $value ? &#39;true&#39; : &#39;false&#39;;</code></pre>
+
+</div>
+
+<p>The prefix <code>!</code> and <code>not</code> operators return the logical opposite of the boolean value of their operands. <code>not</code> is a lower precedence version of <code>!</code>.</p>
+
+<p>The <code>xor</code> operator is an infix operator which evaluates to the exclusive-or of its operands.</p>
+
+<h3>Bitwise Operators</h3>
+
+<p>          </p>
+
+<p> </p>
+
+<p>       </p>
+
+<p>Bitwise operators treat their operands numerically at the bit level. These operations are uncommon. They consist of left shift (<code><<</code>), right shift (<code>>></code>), bitwise and (<code>&</code>), bitwise or (<code>|</code>), and bitwise xor (<code>^</code>), as well as their in-place variants (<code><<=</code>, <code>>>=</code>, <code>&=</code>, <code>|=</code>, and <code>^=</code>).</p>
+
+<h3>Special Operators</h3>
+
+<p><a name="auto_increment_operator"></p>
+
+<p>   </p>
+
+<p>The auto-increment operator has special behavior. When used on a value with a numeric component (<a href="chapter_03.html#cached_coercions">Cached Coercions</a>), the operator increments that numeric component. If the value is obviously a string (and has no numeric component), the operator increments that string value such that <code>a</code> becomes <code>b</code>, <code>zz</code> becomes <code>aaa</code>, and <code>a9</code> becomes <code>b0</code>.</p>
+
+<div class="programlisting">
+
+<pre><code>    my $num = 1;
+    my $str = &#39;a&#39;;
+
+    $num++;
+    $str++;
+    is( $num,   2, &#39;numeric autoincrement&#39; );
+    is( $str, &#39;b&#39;, &#39;string autoincrement&#39;  );
+
+    no warnings &#39;numeric&#39;;
+    $num += $str;
+    $str++;
+
+    is( $num, 2, &#39;numeric addition with $str&#39;    );
+    is( $str, 1, &#39;... gives $str a numeric part&#39; );</code></pre>
+
+</div>
+
+<p>  </p>
+
+<p>The repetition operator (<code>x</code>) is an infix operator with complex behavior. In list context, when given a list, it evaluates to that list repeated the number of times specified by its second operand. In list context when given a scalar, it produces a string consisting of the string value of its first operand concatenated to itself the number of times specified by its second operand.</p>
+
+<p>In scalar context, the operator always produces a concatenated string repeated appropriately. For example:</p>
+
+<div class="programlisting">
+
+<pre><code>    my @scheherazade = (&#39;nights&#39;) x 1001;
+    my $calendar     =  &#39;nights&#39;  x 1001;
+    my $cal_length   =  length $calendar;
+
+    is( @scheherazade, 1001, &#39;list repeated&#39; );
+    is( $length,       1001 * length &#39;nights&#39;,
+                       &#39;word repeated&#39; );
+
+    my @schenolist   =  &#39;nights&#39;  x 1001;
+    my $calscalar    = (&#39;nights&#39;) x 1001;
+
+    is( @schenolist, 1, &#39;no lvalue list&#39; );
+    is( length $calscalar,
+        1001 * length &#39;nights&#39;, &#39;word still repeated&#39; );</code></pre>
+
+</div>
+
+<p>   </p>
+
+<p>The infix <em>range</em> operator (<code>..</code>) produces a list of items in list context:</p>
+
+<div class="programlisting">
+
+<pre><code>    my @cards = ( 2 .. 10, &#39;J&#39;, &#39;Q&#39;, &#39;K&#39;, &#39;A&#39; );</code></pre>
+
+</div>
+
+<p>It can produce simple, incrementing ranges (both as integers or strings), but it cannot intuit patterns or more complex ranges.</p>
+
+<p>  </p>
+
+<p>In boolean context, the range operator becomes the <em>flip-flop</em> operator. This operator produces a false value until its left operand is true. That value stays true until the right operand is true, after which the value is false again until the left operand is true again. Imagine parsing the text of a formal letter with:</p>
+
+<div class="programlisting">
+
+<pre><code>    while (/Hello, $user/ .. /Sincerely,/)
+    {
+        say &quot;&gt; $_&quot;;
+    }</code></pre>
+
+</div>
+
+<p>    </p>
+
+<p>The <em>comma</em> operator (<code>,</code>) is an infix operator. In scalar context it evaluates its left operand then returns the value produced by evaluating its right operand. In list context, it evaluates both operands in left-to-right order.</p>
+
+<p>The fat comma operator (<code>=></code>) also automatically quotes any bareword used as its left operand (<a href="chapter_03.html#hashes">Hashes</a>).</p>
+
+</body>
+</html>
+
