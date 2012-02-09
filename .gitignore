@@ -1,6 +1,4 @@
 build/chapters
 build/html/*.html
-build/pdf/*.pdf
 examples/
-!build/pdf/.gitignore
 !build/epub/.gitignore
